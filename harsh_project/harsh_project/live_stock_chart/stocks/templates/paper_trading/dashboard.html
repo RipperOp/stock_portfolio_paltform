@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paper Trading Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --text-primary: #1f2937;
+            --text-secondary: #4b5563;
+            --bg-primary: #f3f4f6;
+            --bg-secondary: #ffffff;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            padding-top: 70px;
+        }
+
+        .navbar {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 30px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 70px;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .navbar .logo i {
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .navbar .logo h2 {
+            color: #fff;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+            background: linear-gradient(45deg, #fff, #f3f4f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .navbar .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 20px;
+            border-radius: 16px 16px 0 0 !important;
+        }
+
+        .card-title {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .text-success {
+            color: var(--success-color) !important;
+        }
+
+        .text-danger {
+            color: var(--danger-color) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo" onclick="window.location.href='{% url 'home' %}'">
+            <i class="fas fa-chart-line"></i>
+            <h2>Stock Tracker</h2>
+        </div>
+        <div class="nav-links">
+            <a href="{% url 'strategy' %}"><i class="fas fa-chess"></i> Strategy Applied</a>
+            <a href="{% url 'backtest_results' %}"><i class="fas fa-chart-bar"></i> Backtest</a>
+            <a href="{% url 'watchlist' %}"><i class="fas fa-star"></i> Watchlist</a>
+            <a href="{% url 'paper_trading_dashboard' %}"><i class="fas fa-wallet"></i> Paper Trading</a>
+            <a href="{% url 'portfolio' %}"><i class="fas fa-wallet"></i> Portfolio</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Login</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Portfolio Summary -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Portfolio Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Cash Balance:</span>
+                            <span id="cash-balance">₹{{ account.balance|floatformat:2 }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Value:</span>
+                            <span id="total-value">₹0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Total P&L:</span>
+                            <span id="total-pl">₹0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trading Panel -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Trade</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="trade-form">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="symbol">Symbol</label>
+                                        <select class="form-control" id="symbol" name="symbol" required>
+                                            <option value="">Select Stock</option>
+                                            {% for stock in ALLOWED_STOCKS %}
+                                            <option value="{{ stock }}">{{ stock }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="action">Action</label>
+                                        <select class="form-control" id="action" name="action" required>
+                                            <option value="BUY">Buy</option>
+                                            <option value="SELL">Sell</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="quantity">Quantity</label>
+                                        <input type="number" class="form-control" id="quantity" name="quantity" min="1" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary w-100">Execute Trade</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Positions -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Positions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Quantity</th>
+                                        <th>Avg. Price</th>
+                                        <th>Current Price</th>
+                                        <th>Value</th>
+                                        <th>P&L</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="positions-table">
+                                    <!-- Positions will be loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Recent Transactions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Symbol</th>
+                                        <th>Type</th>
+                                        <th>Quantity</th>
+                                        <th>Price</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for transaction in transactions %}
+                                    <tr>
+                                        <td>{{ transaction.created_at|date:"Y-m-d H:i" }}</td>
+                                        <td>{{ transaction.symbol }}</td>
+                                        <td>{{ transaction.transaction_type }}</td>
+                                        <td>{{ transaction.quantity }}</td>
+                                        <td>₹{{ transaction.price|floatformat:2 }}</td>
+                                        <td>₹{{ transaction.total_amount|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        // Update portfolio value periodically
+        function updatePortfolio() {
+            $.get('{% url "get_portfolio_value" %}', function(data) {
+                $('#total-value').text('₹' + data.total_value.toFixed(2));
+                $('#cash-balance').text('₹' + data.cash_balance.toFixed(2));
+                
+                // Update positions table
+                let positionsHtml = '';
+                let totalPL = 0;
+                
+                data.positions.forEach(function(position) {
+                    totalPL += position.profit_loss;
+                    positionsHtml += `
+                        <tr>
+                            <td>${position.symbol}</td>
+                            <td>${position.quantity}</td>
+                            <td>₹${position.average_price.toFixed(2)}</td>
+                            <td>₹${position.current_price.toFixed(2)}</td>
+                            <td>₹${position.position_value.toFixed(2)}</td>
+                            <td class="${position.profit_loss >= 0 ? 'text-success' : 'text-danger'}">
+                                ₹${position.profit_loss.toFixed(2)}
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                $('#positions-table').html(positionsHtml);
+                $('#total-pl').text('₹' + totalPL.toFixed(2));
+            });
+        }
+        
+        // Initial update
+        updatePortfolio();
+        
+        // Update every 30 seconds
+        setInterval(updatePortfolio, 30000);
+        
+        // Handle trade form submission
+        $('#trade-form').on('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                symbol: $('#symbol').val(),
+                action: $('#action').val(),
+                quantity: $('#quantity').val(),
+                csrfmiddlewaretoken: csrftoken
+            };
+            
+            $.ajax({
+                url: '{% url "execute_paper_trade" %}',
+                method: 'POST',
+                data: formData,
+                headers: {
+                    'X-CSRFToken': csrftoken
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        updatePortfolio();
+                        $('#trade-form')[0].reset();
+                    } else {
+                        alert(response.error);
+                    }
+                },
+                error: function(xhr) {
+                    alert(xhr.responseJSON.error || 'An error occurred');
+                }
+            });
+        });
+    });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Indian Stock Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --text-primary: #1f2937;
+            --text-secondary: #4b5563;
+            --bg-primary: #f3f4f6;
+            --bg-secondary: #ffffff;
+            --border-color: #e5e7eb;
+        }
+
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+
+        .navbar {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 30px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 70px;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar .logo i {
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .navbar .logo h2 {
+            color: #fff;
+            font-size: 24px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #fff, #f3f4f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .navbar .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 90px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 25px;
+        }
+
+        .chart-container {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chart-container h1 {
+            color: var(--text-primary);
+            font-size: 24px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stock-select {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .stock-select label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            background-color: var(--bg-secondary);
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234b5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 500px !important;
+        }
+
+        .sidebar {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .sidebar h2 {
+            color: var(--text-primary);
+            font-size: 20px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stock-details {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stock-details p {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .stock-details p:last-child {
+            border-bottom: none;
+        }
+
+        .stock-details .label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .stock-details .value {
+            font-weight: 600;
+        }
+
+        .portfolio-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .portfolio-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .portfolio-stat {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .portfolio-stat h3 {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        .portfolio-stat h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .portfolio-positions {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .position-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .position-item:last-child {
+            border-bottom: none;
+        }
+
+        .position-info {
+            flex: 1;
+        }
+
+        .position-symbol {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .position-details {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .position-pl {
+            text-align: right;
+        }
+
+        .position-pl.positive {
+            color: var(--success-color);
+        }
+
+        .position-pl.negative {
+            color: var(--danger-color);
+        }
+
+        .watchlist-toggle {
+            margin-top: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            background-color: var(--bg-primary);
+        }
+
+        .watchlist-toggle input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+        }
+
+        .watchlist-toggle label {
+            font-size: 16px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: static;
+                margin-top: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="logo" onclick="window.location.href='{% url 'home' %}'">
+        <i class="fas fa-chart-line"></i>
+        <h2>Stock Tracker</h2>
+    </div>
+    <div class="nav-links">
+        <a href="{% url 'strategy' %}"><i class="fas fa-chess"></i> Strategy Applied</a>
+        <a href="{% url 'backtest_results' %}"><i class="fas fa-chart-bar"></i> Backtest</a>
+        <a href="{% url 'watchlist' %}"><i class="fas fa-star"></i> Watchlist</a>
+        <a href="{% url 'paper_trading_dashboard' %}"><i class="fas fa-wallet"></i> Paper Trading</a>
+        <a href="{% url 'portfolio' %}" class="active"><i class="fas fa-chart-pie"></i> Portfolio</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Login</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="container">
+    <div class="chart-container">
+        <h1><i class="fas fa-chart-line"></i> Live Indian Stock Data (5-minute)</h1>
+        <div class="stock-select">
+            <label for="stockSelect">Choose a Stock:</label>
+            <select id="stockSelect" onchange="fetchStockData()">
+                {% for symbol in ALLOWED_STOCKS %}
+                    <option value="{{ symbol }}">{{ symbol }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <canvas id="stockChart"></canvas>
+    </div>
+
+    <div class="sidebar">
+        <h2><i class="fas fa-info-circle"></i> Stock Details</h2>
+        <div class="stock-details">
+            <p><strong>Stock:</strong> <span id="stockName">-</span></p>
+            <p><strong>Current Price:</strong> ₹<span id="currentPrice">-</span></p>
+            <p class="price-change" id="priceChange">-</p>
+            <p class="market-status" id="marketStatus">Checking Market Status...</p>
+            <div class="watchlist-toggle">
+                <input type="checkbox" id="watchlistCheckbox" onchange="toggleWatchlist()">
+                <label for="watchlistCheckbox">Add to Watchlist</label>
+            </div>
+        </div>
+
+        <div class="portfolio-section">
+            <h2><i class="fas fa-chart-pie"></i> Portfolio Overview</h2>
+            <div class="portfolio-stats">
+                <div class="portfolio-stat">
+                    <h3>Available Balance</h3>
+                    <h2 id="available-balance">₹0.00</h2>
+                </div>
+                <div class="portfolio-stat">
+                    <h3>Total Profit/Loss</h3>
+                    <h2 id="total-pl">₹0.00</h2>
+                </div>
+            </div>
+            <div class="portfolio-positions">
+                <h3>Positions</h3>
+                <div id="positions-list">No positions</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let stockChart;
+
+    // Initialize the chart
+    function createChart() {
+        const ctx = document.getElementById('stockChart').getContext('2d');
+        stockChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Stock Price',
+                    data: [],
+                    borderColor: '#2563eb',
+                    tension: 0.1,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Price (₹)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
+
+    // Fetch stock data and update chart
+    async function fetchStockData() {
+        const stockSymbol = document.getElementById('stockSelect').value;
+        
+        try {
+            const response = await fetch(`/api/stocks/?symbol=${stockSymbol}`);
+            const data = await response.json();
+
+            if (data.error) {
+                console.error('Error:', data.error);
+                return;
+            }
+
+            const timestamps = data.data.map(entry => new Date(entry.Datetime).toLocaleTimeString());
+            const prices = data.data.map(entry => entry.Close);
+
+            // Update chart
+            stockChart.data.labels = timestamps;
+            stockChart.data.datasets[0].label = stockSymbol;
+            stockChart.data.datasets[0].data = prices;
+            stockChart.update();
+
+            // Update stock details
+            document.getElementById('stockName').textContent = stockSymbol;
+            document.getElementById('currentPrice').textContent = prices[prices.length - 1].toFixed(2);
+
+            // Calculate price change
+            const priceChange = prices[prices.length - 1] - prices[prices.length - 2];
+            const percentageChange = (priceChange / prices[prices.length - 2] * 100).toFixed(2);
+            const changeText = `${priceChange >= 0 ? '▲' : '▼'} ₹${Math.abs(priceChange).toFixed(2)} (${percentageChange}%)`;
+            const changeElement = document.getElementById('priceChange');
+            changeElement.textContent = changeText;
+            changeElement.className = `price-change ${priceChange >= 0 ? 'positive' : 'negative'}`;
+
+            // Check market status
+            checkMarketStatus();
+        } catch (error) {
+            console.error('Error fetching stock data:', error);
+        }
+    }
+
+    // Check market status
+    function checkMarketStatus() {
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const day = now.getDay();
+
+        // Market is open Monday-Friday, 9:15 AM to 3:30 PM IST
+        const isWeekday = day >= 1 && day <= 5;
+        const isMarketHours = (hours > 9 || (hours === 9 && minutes >= 15)) && (hours < 15 || (hours === 15 && minutes <= 30));
+        const isMarketOpen = isWeekday && isMarketHours;
+
+        const statusElement = document.getElementById('marketStatus');
+        statusElement.textContent = isMarketOpen ? 'Market Open' : 'Market Closed';
+        statusElement.className = `market-status ${isMarketOpen ? 'open' : 'closed'}`;
+    }
+
+    // Update portfolio data
+    function updatePortfolio() {
+        $.get('{% url "get_portfolio_value" %}', function(data) {
+            if (data.error) {
+                console.error('Error:', data.error);
+                return;
+            }
+
+            // Update portfolio stats
+            $('#available-balance').text('₹' + data.cash_balance.toFixed(2));
+            $('#total-pl').text('₹' + data.total_pl.toFixed(2));
+            
+            // Update positions list
+            let positionsHtml = '';
+            data.positions.forEach(function(position) {
+                const plPercentage = ((position.current_price - position.average_price) / position.average_price * 100).toFixed(2);
+                positionsHtml += `
+                    <div class="position-item">
+                        <div class="position-info">
+                            <div class="position-symbol">${position.symbol}</div>
+                            <div class="position-details">
+                                ${position.quantity} shares @ ₹${position.average_price.toFixed(2)}
+                            </div>
+                        </div>
+                        <div class="position-pl ${position.profit_loss >= 0 ? 'positive' : 'negative'}">
+                            ₹${position.profit_loss.toFixed(2)}<br>
+                            <small>${plPercentage}%</small>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            $('#positions-list').html(positionsHtml || '<div class="text-center text-muted">No positions</div>');
+        });
+    }
+
+    // Initialize everything
+    $(document).ready(function() {
+        createChart();
+        fetchStockData();
+        updatePortfolio();
+        
+        // Set up periodic updates
+        setInterval(fetchStockData, 300000); // Update stock data every 5 minutes
+        setInterval(updatePortfolio, 30000); // Update portfolio every 30 seconds
+        setInterval(checkMarketStatus, 60000); // Check market status every minute
+    });
+
+    // Handle watchlist toggle
+    function toggleWatchlist() {
+        const stockSymbol = document.getElementById('stockSelect').value;
+        let watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
+        const checkbox = document.getElementById('watchlistCheckbox');
+
+        if (checkbox.checked) {
+            if (!watchlist.includes(stockSymbol)) {
+                watchlist.push(stockSymbol);
+            }
+        } else {
+            watchlist = watchlist.filter(symbol => symbol !== stockSymbol);
+        }
+
+        localStorage.setItem('watchlist', JSON.stringify(watchlist));
+    }
+
+    // Update watchlist checkbox state
+    function updateWatchlistCheckbox() {
+        const stockSymbol = document.getElementById('stockSelect').value;
+        const watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
+        document.getElementById('watchlistCheckbox').checked = watchlist.includes(stockSymbol);
+    }
+</script>
+</body>
+</html>

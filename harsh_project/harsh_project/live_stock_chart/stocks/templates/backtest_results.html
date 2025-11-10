@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backtest Results</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --text-primary: #1f2937;
+            --text-secondary: #4b5563;
+            --bg-primary: #f3f4f6;
+            --bg-secondary: #ffffff;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+
+        .navbar {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 30px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 70px;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar .logo a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 24px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar .logo i {
+            font-size: 24px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-links .active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 90px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-title h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .page-title p {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        .stock-selection {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stock-selection label {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            background-color: var(--bg-secondary);
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234b5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        #loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--primary-color);
+            font-size: 16px;
+            font-weight: 500;
+            display: none;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.6;
+            }
+        }
+
+        .chart-container {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 500px !important;
+        }
+
+        .backtest-summary {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .backtest-summary h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .backtest-summary p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .backtest-summary strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .highlight {
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 6px;
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .negative-highlight {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        @media (max-width: 768px) {
+            .stock-selection {
+                flex-direction: column;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <a href="{% url 'home' %}">
+                <i class="fas fa-chart-line"></i>
+                Stock Tracker
+            </a>
+        </div>
+        <ul class="nav-links">
+            <li><a href="{% url 'strategy' %}"><i class="fas fa-chess"></i> Strategy Applied</a></li>
+            <li><a href="{% url 'backtest_results' %}"><i class="fas fa-chart-bar"></i> Backtest</a></li>
+            <li><a href="{% url 'watchlist' %}"><i class="fas fa-star"></i> Watchlist</a></li>
+            <li><a href="{% url 'paper_trading_dashboard' %}"><i class="fas fa-wallet"></i> Paper Trading</a></li>
+            <li><a href="{% url 'portfolio' %}"><i class="fas fa-wallet"></i> Portfolio</a></li>
+            {% if user.is_authenticated %}
+            <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            {% else %}
+            <li><a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="page-title">
+            <h1><i class="fas fa-chart-bar"></i> Backtest Results</h1>
+            <p>Analyze the performance of your trading strategy</p>
+        </div>
+
+        <div class="stock-selection">
+            <label for="stockSelect">Choose a Stock:</label>
+            <select id="stockSelect">
+                <option value="RELIANCE">RELIANCE</option>
+                <option value="BSE">BSE</option>
+                <option value="TCS">TCS</option>
+                <option value="INFY">INFY</option>
+                <option value="ICICIBANK">ICICIBANK</option>
+                <option value="HDFCBANK">HDFCBANK</option>
+                <option value="SBIN">SBIN</option>
+                <option value="AXISBANK">AXISBANK</option>
+                <option value="LT">L&T</option>
+                <option value="BHARTIARTL">BHARTIARTL</option>
+                <option value="TITAN">TITAN</option>
+                <option value="BAJFINANCE">BAJFINANCE</option>
+                <option value="MARUTI">MARUTI</option>
+                <option value="SUNPHARMA">SUNPHARMA</option>
+                <option value="WIPRO">WIPRO</option>
+            </select>
+
+            <button class="btn-primary" onclick="fetchBacktest()">
+                <i class="fas fa-play"></i> Run Backtest
+            </button>
+        </div>
+
+        <div id="loading">
+            <i class="fas fa-spinner fa-spin"></i> Loading backtest data...
+        </div>
+
+        <div class="chart-container">
+            <canvas id="backtestChart"></canvas>
+        </div>
+
+        <div class="backtest-summary">
+            <h2><i class="fas fa-chart-pie"></i> Backtest Summary</h2>
+            <p><strong>Total Trades:</strong> <span id="totalTrades" class="highlight">-</span></p>
+            <p><strong>Winning Trades:</strong> <span id="winningTrades" class="highlight">-</span></p>
+            <p><strong>Losing Trades:</strong> <span id="losingTrades" class="highlight negative-highlight">-</span></p>
+            <p><strong>Net Profit:</strong> <span id="netProfit" class="highlight">-</span></p>
+        </div>
+    </div>
+
+    <script>
+        let chartInstance = null;
+
+        async function fetchBacktest() {
+            const stockSymbol = document.getElementById('stockSelect').value.trim();
+            const loadingIndicator = document.getElementById('loading');
+
+            if (!stockSymbol) {
+                alert("Please select a valid stock!");
+                return;
+            }
+
+            loadingIndicator.style.display = "block";
+
+            try {
+                const response = await fetch(`/api/backtest/?symbol=${encodeURIComponent(stockSymbol)}`);
+                const data = await response.json();
+
+                loadingIndicator.style.display = "none";
+
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                if (!data.trades || data.trades.length === 0) {
+                    alert("No trade data available for this stock.");
+                    return;
+                }
+
+                // Extract trade data for chart
+                const labels = data.trades.map(trade => trade.Time);
+                const tradePrices = data.trades.map(trade => trade.Price);
+
+                if (chartInstance) {
+                    chartInstance.destroy();
+                }
+
+                const ctx = document.getElementById('backtestChart').getContext('2d');
+                chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: `${stockSymbol} - Backtest Trades`,
+                            data: tradePrices,
+                            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(),
+                            borderWidth: 2,
+                            tension: 0.1,
+                            fill: false,
+                            pointRadius: 5,
+                            pointBackgroundColor: function (context) {
+                                const trade = data.trades[context.dataIndex];
+                                return trade.Type === 'Buy' ? '#10b981' : '#ef4444';
+                            },
+                            pointStyle: function (context) {
+                                const trade = data.trades[context.dataIndex];
+                                return trade.Type === 'Buy' ? 'triangle' : 'circle';
+                            }
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: "Date",
+                                    color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: "Price (INR)",
+                                    color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim()
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const trade = data.trades[context.dataIndex];
+                                        let label = `${trade.Type}: ₹${trade.Price}`;
+                                        if (trade.Profit !== undefined) {
+                                            label += ` (Profit: ₹${trade.Profit})`;
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Update summary from the summary object
+                const summary = data.summary;
+                document.getElementById('totalTrades').textContent = summary.total_trades;
+                document.getElementById('winningTrades').textContent = summary.winning_trades;
+                document.getElementById('losingTrades').textContent = summary.losing_trades;
+                document.getElementById('netProfit').textContent = `₹${summary.net_profit.toFixed(2)}`;
+
+            } catch (error) {
+                console.error("Error fetching backtest data:", error);
+                loadingIndicator.style.display = "none";
+                alert("Error fetching backtest data. Please try again.");
+            }
+        }
+    </script>
+</body>
+
+</html>

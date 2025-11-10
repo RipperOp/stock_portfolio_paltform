@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Overview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --text-primary: #1f2937;
+            --text-secondary: #4b5563;
+            --bg-primary: #f3f4f6;
+            --bg-secondary: #ffffff;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            padding-top: 70px;
+        }
+
+        .navbar {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 30px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 70px;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .navbar .logo i {
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .navbar .logo h2 {
+            color: #fff;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+            background: linear-gradient(45deg, #fff, #f3f4f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .navbar .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 20px;
+            border-radius: 16px 16px 0 0 !important;
+        }
+
+        .card-title {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .text-success {
+            color: var(--success-color) !important;
+        }
+
+        .text-danger {
+            color: var(--danger-color) !important;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+
+        .stat-card h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            font-size: 12px;
+            opacity: 0.8;
+            margin: 0;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-bottom: 20px;
+        }
+
+        .performance-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: var(--bg-secondary);
+            margin-bottom: 10px;
+        }
+
+        .performance-indicator i {
+            font-size: 20px;
+        }
+
+        .performance-indicator .info {
+            flex: 1;
+        }
+
+        .performance-indicator .value {
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo" onclick="window.location.href='{% url 'home' %}'">
+            <i class="fas fa-chart-line"></i>
+            <h2>Stock Tracker</h2>
+        </div>
+        <div class="nav-links">
+            <a href="{% url 'strategy' %}"><i class="fas fa-chess"></i> Strategy Applied</a>
+            <a href="{% url 'backtest_results' %}"><i class="fas fa-chart-bar"></i> Backtest</a>
+            <a href="{% url 'watchlist' %}"><i class="fas fa-star"></i> Watchlist</a>
+            <a href="{% url 'paper_trading_dashboard' %}"><i class="fas fa-wallet"></i> Paper Trading</a>
+            <a href="{% url 'portfolio' %}" class="active"><i class="fas fa-chart-pie"></i> Portfolio</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Login</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <!-- User Profile Section -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">User Profile</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <i class="fas fa-user-circle fa-4x mb-3" style="color: var(--primary-color);"></i>
+                                    <h4>{{ user.username }}</h4>
+                                    <p class="text-muted">{{ user.email }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="stat-card">
+                                            <h3>Available Balance</h3>
+                                            <h2>₹{{ account.balance|floatformat:2 }}</h2>
+                                            <p>Last updated: {{ now|date:"Y-m-d H:i" }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="stat-card">
+                                            <h3>Total P&L</h3>
+                                            <h2 class="{% if total_pl >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                                ₹{{ total_pl|floatformat:2 }}
+                                            </h2>
+                                            <p>All time performance</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="stat-card">
+                                            <h3>P&L Percentage</h3>
+                                            <h2 class="{% if pl_percentage >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                                {{ pl_percentage|floatformat:2 }}%
+                                            </h2>
+                                            <p>Based on initial investment</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Portfolio Performance -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Portfolio Performance</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <!-- Chart will be rendered here -->
+                            <canvas id="portfolioChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Performance Indicators</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="performance-indicator">
+                            <i class="fas fa-chart-line text-success"></i>
+                            <div class="info">
+                                <div>Best Performing Stock</div>
+                                <div class="value" id="best-stock">-</div>
+                            </div>
+                        </div>
+                        <div class="performance-indicator">
+                            <i class="fas fa-chart-line text-danger"></i>
+                            <div class="info">
+                                <div>Worst Performing Stock</div>
+                                <div class="value" id="worst-stock">-</div>
+                            </div>
+                        </div>
+                        <div class="performance-indicator">
+                            <i class="fas fa-coins text-primary"></i>
+                            <div class="info">
+                                <div>Total Positions</div>
+                                <div class="value" id="total-positions">0</div>
+                            </div>
+                        </div>
+                        <div class="performance-indicator">
+                            <i class="fas fa-percentage text-secondary"></i>
+                            <div class="info">
+                                <div>Win Rate</div>
+                                <div class="value" id="win-rate">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Positions -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Current Positions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Quantity</th>
+                                        <th>Avg. Price</th>
+                                        <th>Current Price</th>
+                                        <th>Value</th>
+                                        <th>P&L</th>
+                                        <th>P&L %</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    if positions 
+                                         for position in positions 
+                                            <tr>
+                                                <td>{{ position.symbol }}</td>
+                                                <td>{{ position.quantity }}</td>
+                                                <td>₹{{ position.average_price|floatformat:2 }}</td>
+                                                <td>₹{{ position.current_price|floatformat:2 }}</td>
+                                                <td>₹{{ position.value|floatformat:2 }}</td>
+                                                <td class="{% if position.profit_loss >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                                    ₹{{ position.profit_loss|floatformat:2 }}
+                                                </td>
+                                                <td class="{% if position.pl_percentage >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                                    {{ position.pl_percentage|floatformat:2 }}%
+                                                </td>
+                                                <td>
+                                                    <a href="{% url 'paper_trading_dashboard' %}?symbol={{ position.symbol }}" class="btn btn-sm btn-primary">
+                                                        <i class="fas fa-exchange-alt"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        end for 
+                                     else 
+                                        <tr>
+                                            <td colspan="8" class="text-center text-muted">No positions found</td>
+                                        </tr>
+                                    endif 
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    $(document).ready(function() {
+        // Initialize portfolio chart
+        const ctx = document.getElementById('portfolioChart').getContext('1d');
+        const portfolioChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Portfolio Value',
+                    data: [],
+                    borderColor: '#2563eb',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false
+                    }
+                }
+            }
+        });
+
+        // Update portfolio data
+        function updatePortfolio() {
+            $.get('{% url "get_portfolio_value" %}', function(data) {
+                // Update basic stats
+                $('#available-balance').text('₹' + data.cash_balance.toFixed(2));
+                $('#total-pl').text('₹' + data.total_pl.toFixed(2));
+                $('#pl-percentage').text(data.pl_percentage.toFixed(2) + '%');
+                $('#total-positions').text(data.positions.length);
+                
+                // Update positions table
+                let positionsHtml = '';
+                let bestStock = { symbol: '-', pl: -Infinity };
+                let worstStock = { symbol: '-', pl: Infinity };
+                let winningTrades = 0;
+                
+                data.positions.forEach(function(position) {
+                    const plPercentage = ((position.current_price - position.average_price) / position.average_price * 100).toFixed(2);
+                    positionsHtml += `
+                        <tr>
+                            <td>${position.symbol}</td>
+                            <td>${position.quantity}</td>
+                            <td>₹${position.average_price.toFixed(2)}</td>
+                            <td>₹${position.current_price.toFixed(2)}</td>
+                            <td>₹${position.position_value.toFixed(2)}</td>
+                            <td class="${position.profit_loss >= 0 ? 'text-success' : 'text-danger'}">
+                                ₹${position.profit_loss.toFixed(2)}
+                            </td>
+                            <td class="${plPercentage >= 0 ? 'text-success' : 'text-danger'}">
+                                ${plPercentage}%
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="tradeStock('${position.symbol}')">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    
+                    // Track best and worst performing stocks
+                    if (position.profit_loss > bestStock.pl) {
+                        bestStock = { symbol: position.symbol, pl: position.profit_loss };
+                    }
+                    if (position.profit_loss < worstStock.pl) {
+                        worstStock = { symbol: position.symbol, pl: position.profit_loss };
+                    }
+                    
+                    if (position.profit_loss > 0) winningTrades++;
+                });
+                
+                $('#positions-table').html(positionsHtml);
+                $('#best-stock').text(bestStock.symbol + ' (₹' + bestStock.pl.toFixed(2) + ')');
+                $('#worst-stock').text(worstStock.symbol + ' (₹' + worstStock.pl.toFixed(2) + ')');
+                
+                // Calculate win rate
+                const winRate = data.positions.length > 0 ? (winningTrades / data.positions.length * 100).toFixed(1) : 0;
+                $('#win-rate').text(winRate + '%');
+                
+                // Update chart
+                if (data.history) {
+                    portfolioChart.data.labels = data.history.dates;
+                    portfolioChart.data.datasets[0].data = data.history.values;
+                    portfolioChart.update();
+                }
+            });
+        }
+        
+        // Initial update
+        updatePortfolio();
+        
+        // Update every 30 seconds
+        setInterval(updatePortfolio, 30000);
+        
+        // Trade stock function
+        window.tradeStock = function(symbol) {
+            window.location.href = `{% url 'paper_trading_dashboard' %}?symbol=${symbol}`;
+        };
+    });
+    </script>
+</body>
+</html> 

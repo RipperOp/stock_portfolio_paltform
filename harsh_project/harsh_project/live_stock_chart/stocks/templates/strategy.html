@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategy Applied</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --text-primary: #1f2937;
+            --text-secondary: #4b5563;
+            --bg-primary: #f3f4f6;
+            --bg-secondary: #ffffff;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+
+        .navbar {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 30px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 70px;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar .logo a {
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar .logo i {
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .navbar .logo span {
+            color: #fff;
+            font-size: 24px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #fff, #f3f4f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .navbar .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 90px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 25px;
+        }
+
+        .chart-container {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chart-container h1 {
+            color: var(--text-primary);
+            font-size: 24px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stock-select {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .stock-select label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            background-color: var(--bg-secondary);
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234b5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 500px !important;
+        }
+
+        .sidebar {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .signal {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 500;
+            animation: fadeIn 0.3s ease-out;
+            background-color: rgba(37, 99, 235, 0.1);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .price-change.positive {
+            color: var(--success-color);
+        }
+
+        .price-change.negative {
+            color: var(--danger-color);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .sidebar h2 {
+            color: var(--text-primary);
+            font-size: 20px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stock-details {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stock-details p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stock-details strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .price-change {
+            font-size: 20px;
+            font-weight: 600;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: static;
+                margin-top: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">
+            <a href="{% url 'home' %}">
+                <i class="fas fa-chart-line"></i>
+                <span>Stock Tracker</span>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="{% url 'strategy' %}"><i class="fas fa-chess"></i> Strategy Applied</a>
+            <a href="{% url 'backtest_results' %}"><i class="fas fa-chart-bar"></i> Backtest</a>
+            <a href="{% url 'watchlist' %}"><i class="fas fa-star"></i> Watchlist</a>
+            <a href="{% url 'paper_trading_dashboard' %}"><i class="fas fa-wallet"></i> Paper Trading</a>
+            <a href="{% url 'portfolio' %}"><i class="fas fa-wallet"></i> Portfolio</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Login</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="chart-container">
+            <h1><i class="fas fa-chart-line"></i> EMA Trading Strategy</h1>
+            <div class="stock-select">
+                <label for="stockSelect">Choose a Stock:</label>
+                <select id="stockSelect" onchange="fetchStockData()">
+                    <option value="RELIANCE">RELIANCE</option>
+                    <option value="BSE">BSE</option>
+                    <option value="TCS">TCS</option>
+                    <option value="INFY">INFY</option>
+                    <option value="ICICIBANK">ICICIBANK</option>
+                    <option value="HDFCBANK">HDFCBANK</option>
+                    <option value="SBIN">SBIN</option>
+                    <option value="AXISBANK">AXISBANK</option>
+                    <option value="LT">L&T</option>
+                    <option value="BHARTIARTL">BHARTIARTL</option>
+                    <option value="TITAN">TITAN</option>
+                    <option value="BAJFINANCE">BAJFINANCE</option>
+                    <option value="MARUTI">MARUTI</option>
+                    <option value="SUNPHARMA">SUNPHARMA</option>
+                    <option value="WIPRO">WIPRO</option>
+                </select>
+            </div>
+            <canvas id="stockChart"></canvas>
+        </div>
+
+        <div class="sidebar">
+            <h2><i class="fas fa-info-circle"></i> Stock Details</h2>
+            <div class="stock-details">
+                <p><strong>Stock:</strong> <span id="stockName">-</span></p>
+                <p><strong>Current Price:</strong> ₹<span id="currentPrice">-</span></p>
+                <p class="price-change" id="priceChange">-</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let stockChart;
+
+        async function fetchStockData() {
+            const stockSymbol = document.getElementById('stockSelect').value;
+            try {
+                const response = await fetch(`/api/stocks/?symbol=${stockSymbol}`);
+                const data = await response.json();
+
+                if (data.data) {
+                    const timestamps = data.data.map(entry => new Date(entry.Datetime).toLocaleTimeString());
+                    const prices = data.data.map(entry => parseFloat(entry.Close));
+
+                    const ema21 = calculateEMA(prices, 21);
+                    const ema50 = calculateEMA(prices, 50);
+
+                    updateChart(stockSymbol, timestamps, prices, ema21, ema50);
+                    updateStockDetails(stockSymbol, prices);
+                    checkSignals(prices, ema21, ema50);
+                } else {
+                    console.error("Invalid data format:", data);
+                }
+            } catch (error) {
+                console.error("Error fetching stock data:", error);
+            }
+        }
+
+        function calculateEMA(prices, period) {
+            const k = 2 / (period + 1);
+            let ema = [prices[0]];
+
+            for (let i = 1; i < prices.length; i++) {
+                ema.push(prices[i] * k + ema[i - 1] * (1 - k));
+            }
+
+            return ema;
+        }
+
+        function updateChart(stockSymbol, timestamps, prices, ema21, ema50) {
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            
+            if (stockChart) {
+                stockChart.destroy();
+            }
+
+            stockChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timestamps,
+                    datasets: [
+                        {
+                            label: `${stockSymbol} Price`,
+                            data: prices,
+                            borderColor: 'rgb(37, 99, 235)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: '21 EMA',
+                            data: ema21,
+                            borderColor: 'rgb(16, 185, 129)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: '50 EMA',
+                            data: ema50,
+                            borderColor: 'rgb(239, 68, 68)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Price (₹)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ₹${context.parsed.y.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateStockDetails(stockSymbol, prices) {
+            const currentPrice = prices[prices.length - 1];
+            const previousPrice = prices[prices.length - 2];
+            const priceDifference = (currentPrice - previousPrice).toFixed(2);
+            const percentageChange = ((priceDifference / previousPrice) * 100).toFixed(2);
+
+            document.getElementById('stockName').textContent = stockSymbol;
+            document.getElementById('currentPrice').textContent = currentPrice.toFixed(2);
+
+            const priceChangeElement = document.getElementById('priceChange');
+            const changeText = priceDifference >= 0
+                ? `📈 +₹${Math.abs(priceDifference)} (+${percentageChange}%)`
+                : `📉 -₹${Math.abs(priceDifference)} (${percentageChange}%)`;
+
+            priceChangeElement.textContent = changeText;
+            priceChangeElement.className = `price-change ${priceDifference >= 0 ? 'positive' : 'negative'}`;
+        }
+
+        function checkSignals(prices, ema21, ema50) {
+            const lastIndex = prices.length - 1;
+            const prevIndex = lastIndex - 1;
+
+            // Check for crossover signals
+            const currentCross = ema21[lastIndex] - ema50[lastIndex];
+            const previousCross = ema21[prevIndex] - ema50[prevIndex];
+
+            let signal = '';
+            if (currentCross > 0 && previousCross < 0) {
+                signal = '🟢 Buy Signal: 21 EMA crossed above 50 EMA';
+            } else if (currentCross < 0 && previousCross > 0) {
+                signal = '🔴 Sell Signal: 21 EMA crossed below 50 EMA';
+            }
+
+            // Add signal to stock details if there is one
+            if (signal) {
+                const signalElement = document.createElement('p');
+                signalElement.className = 'signal';
+                signalElement.textContent = signal;
+                document.querySelector('.stock-details').appendChild(signalElement);
+
+                // Remove signal after 5 seconds
+                setTimeout(() => {
+                    signalElement.remove();
+                }, 5000);
+            }
+        }
+
+        // Initialize the chart and start updates
+        fetchStockData();
+        setInterval(fetchStockData, 300000); // Update every 5 minutes
+    </script>
+</body>
+</html>
